@@ -2,12 +2,12 @@ data "aws_vpc" "default_vpc_data" {
     default = true
 }
 
-resource "aws_security_group" "web_server_sg" {
-  name        = "web_server_sg"
+resource "aws_security_group" "db_server_sg" {
+  name        = "db_server_sg"
   vpc_id      = data.aws_vpc.default_vpc_data.id
 
   tags = {
-    Name = "web_server_sg"
+    Name = "db_server_sg"
   }
 }
 
@@ -17,25 +17,16 @@ resource "aws_security_group_rule" "allow_ssh" {
   to_port           = 22
   protocol          = "tcp"
   cidr_blocks       = ["0.0.0.0/0"]
-  security_group_id = aws_security_group.web_server_sg.id
+  security_group_id = aws_security_group.db_server_sg.id
 }
 
-resource "aws_security_group_rule" "allow_http" {
+resource "aws_security_group_rule" "allow_mysql" {
   type              = "ingress"
-  from_port         = 80
-  to_port           = 80
+  from_port         = 3306
+  to_port           = 3306
   protocol          = "tcp"
-  cidr_blocks       = ["0.0.0.0/0"]
-  security_group_id = aws_security_group.web_server_sg.id
-}
-
-resource "aws_security_group_rule" "allow_app" {
-  type              = "ingress"
-  from_port         = 5000
-  to_port           = 5000
-  protocol          = "tcp"
-  cidr_blocks       = ["0.0.0.0/0"]
-  security_group_id = aws_security_group.web_server_sg.id
+  cidr_blocks       = [data.aws_vpc.default_vpc_data.cidr_block]
+  security_group_id = aws_security_group.db_server_sg.id
 }
 
 resource "aws_security_group_rule" "allow_all_out" {
@@ -44,5 +35,5 @@ resource "aws_security_group_rule" "allow_all_out" {
   to_port           = 0
   protocol          = "-1"
   cidr_blocks       = ["0.0.0.0/0"]
-  security_group_id = aws_security_group.web_server_sg.id
+  security_group_id = aws_security_group.db_server_sg.id
 }
